@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="registro.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Pacientes Emergencias</title>
+  <link rel="stylesheet" href="registro.css" />
+</head>
+<body>
+  <h1 class="titulo">Hospital de Emergencias</h1>
+
+  <form id="formulario" class="formulario">
+    <input type="text" id="nombre" class="input" placeholder="Nombre completo" required />
+    <input type="number" id="edad" class="input" placeholder="Edad" min="1" required />
+    <select id="genero" class="input" required>
+      <option value="" disabled selected>Género</option>
+      <option value="Hombre">Hombre</option>
+      <option value="Mujer">Mujer</option>
+    </select>
+    <input type="text" id="documento" class="input" placeholder="Documento de identidad" minlength="5" required />
+    <input type="text" id="sintomas" class="input" placeholder="Síntomas" required />
+    <select id="nivel" class="input" required>
+      <option value="" disabled selected>Nivel de gravedad</option>
+      <option value="leve">Leve</option>
+      <option value="moderado">Moderado</option>
+      <option value="urgente">Urgente</option>
+      <option value="critico">Crítico</option>
+    </select>
+    <input type="text" id="tratamiento" class="input" placeholder="Tratamiento" required />
+    <input type="text" id="medicamentos" class="input" placeholder="Medicamentos" required />
+    <select id="examenes" class="input" required>
+      <option value="" disabled selected>Exámenes</option>
+      <option value="Sangre">Sangre</option>
+      <option value="Orina">Orina</option>
+      <option value="Rayos X">Rayos X</option>
+      <option value="ECG">ECG</option>
+    </select>
+    <button type="submit" class="boton">Registrar Paciente</button>
+  </form>
+
+  <input type="text" id="buscador" class="buscador" placeholder="Buscar paciente por nombre..." />
+
+  <div class="contador" id="contador">
+    <div>Crítico: <span id="critico">0</span></div>
+    <div>Urgente: <span id="urgente">0</span></div>
+    <div>Moderado: <span id="moderado">0</span></div>
+    <div>Leve: <span id="leve">0</span></div>
+  </div>
+
+  <table class="tabla" id="tabla">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Edad</th>
+        <th>Género</th>
+        <th>Documento</th>
+        <th>Síntomas</th>
+        <th>Gravedad</th>
+        <th>Tratamiento</th>
+        <th>Medicamentos</th>
+        <th>Exámenes</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoTabla"></tbody>
+  </table>
+
+  <section class="noticias">
+    <h2>Noticias del Hospital</h2>
+    <article class="noticia">
+      <h3 class="noticia-titulo">Campaña de vacunación contra la gripe</h3>
+      <p class="noticia-texto">La campaña iniciará el próximo lunes y durará dos semanas. Se recomienda a todos acudir para prevenir enfermedades respiratorias.</p>
+    </article>
+    <article class="noticia">
+      <h3 class="noticia-titulo">Nuevo equipo de rayos X</h3>
+      <p class="noticia-texto">El hospital ha adquirido un equipo moderno que reduce el tiempo de diagnóstico y mejora la precisión.</p>
+    </article>
+    <article class="noticia">
+      <h3 class="noticia-titulo">Horario ampliado de urgencias</h3>
+      <p class="noticia-texto">Desde esta semana, el área de urgencias funcionará las 24 horas para mejorar la atención a pacientes críticos.</p>
+    </article>
+  </section>
+
+  <div class="alerta" id="alerta">
+    <p>Paciente en estado crítico registrado!</p>
+    <button id="cerrarAlerta">Cerrar</button>
+  </div>
+
+  <script>
+    const formulario = document.getElementById('formulario');
+    const cuerpoTabla = document.getElementById('cuerpoTabla');
+    const buscador = document.getElementById('buscador');
+    const alerta = document.getElementById('alerta');
+    const cerrarAlerta = document.getElementById('cerrarAlerta');
+    const contador = {
+      critico: document.getElementById('critico'),
+      urgente: document.getElementById('urgente'),
+      moderado: document.getElementById('moderado'),
+      leve: document.getElementById('leve')
+    };
+
+    let pacientes = [];
+
+    function actualizarContador() {
+      const niveles = { critico: 0, urgente: 0, moderado: 0, leve: 0 };
+      pacientes.forEach(p => niveles[p.nivel]++);
+      contador.critico.textContent = niveles.critico;
+      contador.urgente.textContent = niveles.urgente;
+      contador.moderado.textContent = niveles.moderado;
+      contador.leve.textContent = niveles.leve;
+    }
+
+    function mostrarAlerta() {
+      alerta.style.display = 'block';
+    }
+
+    cerrarAlerta.addEventListener('click', () => {
+      alerta.style.display = 'none';
+    });
+
+    function dibujarTabla(pacientesFiltrados) {
+      cuerpoTabla.innerHTML = '';
+      pacientesFiltrados.forEach((paciente, index) => {
+        const fila = document.createElement('tr');
+        fila.classList.add(`severidad-${paciente.nivel}`);
+
+        fila.innerHTML = `
+          <td>${paciente.nombre}</td>
+          <td>${paciente.edad}</td>
+          <td>${paciente.genero}</td>
+          <td>${paciente.documento}</td>
+          <td>${paciente.sintomas}</td>
+          <td>${paciente.nivel.charAt(0).toUpperCase() + paciente.nivel.slice(1)}</td>
+          <td>${paciente.tratamiento}</td>
+          <td>${paciente.medicamentos}</td>
+          <td>${paciente.examenes}</td>
+          <td><button class="btn-eliminar" data-index="${index}">Eliminar</button></td>
+        `;
+        cuerpoTabla.appendChild(fila);
+      });
+      actualizarContador();
+    }
+
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const paciente = {
+        nombre: document.getElementById('nombre').value.trim(),
+        edad: document.getElementById('edad').value.trim(),
+        genero: document.getElementById('genero').value,
+        documento: document.getElementById('documento').value.trim(),
+        sintomas: document.getElementById('sintomas').value.trim(),
+        nivel: document.getElementById('nivel').value,
+        tratamiento: document.getElementById('tratamiento').value.trim(),
+        medicamentos: document.getElementById('medicamentos').value.trim(),
+        examenes: document.getElementById('examenes').value
+      };
+
+      if (paciente.edad <= 0 || paciente.documento.length < 5) {
+        alert('Edad debe ser mayor a 0 y documento tener al menos 5 caracteres.');
+        return;
+      }
+
+      if (Object.values(paciente).some(v => v === '' || v == null)) {
+        alert('Por favor completa todos los campos.');
+        return;
+      }
+
+      pacientes.push(paciente);
+      pacientes.sort((a, b) => {
+        const prioridad = { critico: 1, urgente: 2, moderado: 3, leve: 4 };
+        return prioridad[a.nivel] - prioridad[b.nivel];
+      });
+
+      dibujarTabla(pacientes);
+
+      formulario.reset();
+
+      if (paciente.nivel === 'critico') {
+        mostrarAlerta();
+      }
+    });
+
+    cuerpoTabla.addEventListener('click', e => {
+      if (e.target.classList.contains('btn-eliminar')) {
+        const index = e.target.dataset.index;
+        pacientes.splice(index, 1);
+        dibujarTabla(pacientes);
+      }
+    });
+
+    buscador.addEventListener('input', () => {
+      const texto = buscador.value.toLowerCase();
+      const filtrados = pacientes.filter(p =>
+        p.nombre.toLowerCase().includes(texto)
+      );
+      dibujarTabla(filtrados);
+    });
+  </script>
+</body>
+</html>
